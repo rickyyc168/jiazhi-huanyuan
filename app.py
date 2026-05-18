@@ -737,6 +737,109 @@ def analyze():
     })
 
 
+
+# ============================================================
+# 股票搜索接口
+# ============================================================
+
+@app.route('/api/search', methods=['GET'])
+def search_stock():
+    """关键词搜索股票（支持中文名、拼音、代码）"""
+    import requests as _req
+    keyword = request.args.get('q', '').strip()
+    if not keyword or len(keyword) < 1:
+        return jsonify({'results': []})
+
+    results = []
+
+    # 方法1：东方财富搜索API（支持中文名、拼音、代码）
+    try:
+        url = 'https://searchapi.eastmoney.com/api/suggest/get'
+        params = {
+            'input': keyword,
+            'type': '14',
+            'token': 'D43BF722C8E33BDC906FB84D85E326E8',
+            'count': '10'
+        }
+        headers = {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://www.eastmoney.com'}
+        resp = _req.get(url, params=params, headers=headers, timeout=5)
+        data = resp.json()
+
+        if data.get('QuotationCodeTable', {}).get('Data'):
+            for item in data['QuotationCodeTable']['Data']:
+                code = item.get('Code', '')
+                name = item.get('Name', '')
+                market = item.get('MktNum', '')
+                stock_type = item.get('SecurityTypeName', '')
+
+                if stock_type in ('深A', '沪A', '港股', '美股', '沪港通', '深港通',
+                                  '北交所', '科创板', '创业板', '中小板'):
+                    if market == '1':
+                        suffix = '.SH'
+                    elif market == '0':
+                        suffix = '.SZ'
+                    elif market == '116':
+                        suffix = '.HK'
+                    else:
+                        suffix = ''
+
+                    results.append({
+                        'code': code,
+                        'name': name,
+                        'suffix': suffix,
+                        'display': f'{code} {name}',
+                        'type': stock_type
+                    })
+    except Exception as e:
+        print(f'EastMoney search error: {e}')
+
+    # 方法2：备用 — 新浪搜索
+    if not results:
+        try:
+            url = f'https://suggest3.sinajs.cn/suggest/all'
+            params = {'key': keyword, 'name': 'suggestdata'}
+            headers = {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://finance.sina.com.cn'}
+            resp = _req.get(url, params=params, headers=headers, timeout=5)
+            text = resp.text
+
+            if '"' in text:
+                raw = text.split('"')[1]
+                items = raw.split('~')
+                for i in range(0, len(items) - 6, 7):
+                    market = items[i]
+                    code = items[i + 1]
+                    name = items[i + 2]
+                    item_type = items[i + 3]
+
+                    if item_type in ('2', '3', '4'):
+                        if item_type == '2':
+                            suffix = '.SZ'
+                        elif item_type == '3':
+                            suffix = '.SH'
+                        else:
+                            suffix = '.HK'
+
+                        results.append({
+                            'code': code,
+                            'name': name,
+                            'suffix': suffix,
+                            'display': f'{code} {name}',
+                            'type': {'2': '深A', '3': '沪A', '4': '港股'}.get(item_type, '')
+                        })
+        except Exception as e:
+            print(f'Sina search error: {e}')
+
+    # 去重
+    seen = set()
+    unique = []
+    for r in results:
+        key = r['code'] + r['suffix']
+        if key not in seen:
+            seen.add(key)
+            unique.append(r)
+
+    return jsonify({'results': unique[:10]})
+
 @app.route('/api/fit', methods=['POST'])
 def fit():
     """计算加权拟合和拟合度"""
