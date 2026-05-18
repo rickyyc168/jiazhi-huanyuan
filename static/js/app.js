@@ -223,7 +223,7 @@ function renderCompositeChart(result) {
             }
         },
         legend: {
-            data: ['综合评分曲线', '真实股价(归一化)', '各模块评分'],
+            data: ['综合评分曲线', '真实股价(归一化)'],
             textStyle: { color: '#8b97a8' },
             top: 10
         },
@@ -281,33 +281,7 @@ function renderCompositeChart(result) {
                 symbol: 'none',
                 z: 5
             },
-            {
-                name: '各模块评分',
-                type: 'line',
-                data: analysisData.modules.fundamental.scores,
-                smooth: true,
-                lineStyle: { width: 1, color: '#3b82f6', opacity: 0.3 },
-                symbol: 'none',
-                silent: true
-            },
-            {
-                name: '各模块评分',
-                type: 'line',
-                data: analysisData.modules.technical.scores,
-                smooth: true,
-                lineStyle: { width: 1, color: '#10b981', opacity: 0.3 },
-                symbol: 'none',
-                silent: true
-            },
-            {
-                name: '各模块评分',
-                type: 'line',
-                data: analysisData.modules.sentiment.scores,
-                smooth: true,
-                lineStyle: { width: 1, color: '#f59e0b', opacity: 0.3 },
-                symbol: 'none',
-                silent: true
-            }
+
         ]
     });
 
