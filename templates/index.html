@@ -21,8 +21,7 @@
         <!-- 搜索区 -->
         <div class="search-section">
             <div class="search-box">
-                <input type="text" id="stockInput" placeholder="输入股票代码（如 000001、600519、AAPL、00700.HK）" 
-                       onkeypress="if(event.key==='Enter')analyze()">
+                <input type="text" id="stockInput" placeholder="输入股票名称或代码（如 贵州茅台、AAPL、000001）" autocomplete="off">
                 <button onclick="analyze()" id="searchBtn">
                     <span class="btn-text">开始分析</span>
                     <span class="btn-loading" style="display:none">分析中...</span>
