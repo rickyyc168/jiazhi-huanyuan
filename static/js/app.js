@@ -32,7 +32,7 @@ async function analyze() {
     btn.disabled = true;
 
     try {
-        const resp = await fetch(`/api/analyze?code=${encodeURIComponent(input)}&days=60`);
+        const resp = await fetch(`/api/analyze?code=${encodeURIComponent(input)}&days=180`);
         const data = await resp.json();
 
         if (data.error) {
