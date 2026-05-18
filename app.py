@@ -187,36 +187,42 @@ def fetch_a_share_eastmoney(code, days=60):
 
 
 def fetch_hk_data(code, days=60):
-    """港股数据（新浪财经）"""
+    """港股数据（腾讯财经）"""
     import requests
     import pandas as pd
 
-    # 新浪港股日K线
-    symbol = f'rt_hk{code}'
-    url = f'https://hq.sinajs.cn/list={symbol}'
-    headers = {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://finance.sina.com.cn'}
+    code = code.zfill(5)
 
-    try:
-        # 获取实时数据
-        resp = requests.get(url, headers=headers, timeout=10)
-        parts = resp.text.split('"')[1].split(',')
-        current_price = float(parts[6])
-        change_pct = float(parts[8])
-        name = parts[1]
-    except Exception as e:
-        return {'error': f'港股实时数据获取失败: {str(e)}'}
-
-    # 获取日K线数据 - 使用雪球或备用
+    # 腾讯港股K线数据
     klines = fetch_hk_kline(code, days)
     if not klines:
-        return {'error': f'港股历史数据获取失败，请稍后重试'}
+        return {'error': f'港股历史数据获取失败，请检查股票代码'}
 
     df = pd.DataFrame(klines)
+    current_price = float(df.iloc[-1]['close'])
+    prev_close = float(df.iloc[-2]['close'])
+    change_pct = round((current_price - prev_close) / prev_close * 100, 2)
+
+    # 腾讯港股实时行情（获取名称）
+    name = code
+    try:
+        url = f'https://qt.gtimg.cn/q=hk{code}'
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        resp = requests.get(url, headers=headers, timeout=5)
+        text = resp.text
+        if '~' in text:
+            parts = text.split('~')
+            if len(parts) > 32:
+                name = parts[1]
+                current_price = float(parts[3])
+                change_pct = float(parts[32])
+    except Exception:
+        pass
 
     return {
         'code': code, 'name': name,
         'current_price': current_price, 'change_pct': change_pct,
-        'source': 'sina',
+        'source': 'tencent',
         'klines': klines,
         'dates': [d.strftime('%Y-%m-%d') for d in df['day']],
         'closes': df['close'].tolist(), 'opens': df['open'].tolist(),
@@ -226,38 +232,50 @@ def fetch_hk_data(code, days=60):
 
 
 def fetch_hk_kline(code, days=60):
-    """港股K线数据 - 新浪财经"""
+    """港股K线数据 - 腾讯财经"""
     import requests
     import pandas as pd
-    from datetime import datetime, timedelta
 
-    # 新浪港股K线接口
-    url = f'https://finance.sina.com.cn/stock/hkstock/{code}/klc_history.js'
-    headers = {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://finance.sina.com.cn'}
+    code = code.zfill(5)
+
+    # 腾讯港股日K线接口
+    url = f'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get'
+    params = {
+        'param': f'hk{code},day,,,{days},qfq'
+    }
+    headers = {'User-Agent': 'Mozilla/5.0'}
 
     try:
-        resp = requests.get(url, headers=headers, timeout=10)
-        # 解析返回的JS数据
-        text = resp.text
-        if 'var KLC_DATA=' in text:
-            data_str = text.split('var KLC_DATA=')[1].split(';')[0]
-            import json
-            data = json.loads(data_str)
-            klines = []
-            for item in data[-days:]:
-                klines.append({
-                    'day': pd.to_datetime(item[0]),
-                    'open': float(item[1]),
-                    'close': float(item[2]),
-                    'high': float(item[3]),
-                    'low': float(item[4]),
-                    'volume': float(item[5]) if len(item) > 5 else 0
-                })
-            return klines
-    except Exception:
-        pass
+        resp = requests.get(url, params=params, headers=headers, timeout=10)
+        data = resp.json()
 
-    return None
+        if data.get('code') != 0:
+            return None
+
+        stock_data = data.get('data', {}).get(f'hk{code}', {})
+        # 优先用qfqday（前复权），没有则用day
+        raw_klines = stock_data.get('qfqday') or stock_data.get('day') or []
+
+        if not raw_klines:
+            return None
+
+        klines = []
+        for item in raw_klines:
+            # 格式: [日期, 开盘, 收盘, 最高, 最低, 成交量]
+            klines.append({
+                'day': pd.to_datetime(item[0]),
+                'open': float(item[1]),
+                'close': float(item[2]),
+                'high': float(item[3]),
+                'low': float(item[4]),
+                'volume': float(item[5]) if len(item) > 5 else 0
+            })
+
+        return klines if klines else None
+
+    except Exception as e:
+        print(f'HK kline error: {e}')
+        return None
 
 
 def fetch_us_data(code, days=60):
