@@ -199,31 +199,54 @@ function renderCompositeChart(result) {
         compositeScores.push(Math.max(0, Math.min(100, compositeScores[i-1] + result.composite_changes[i])));
     }
 
-    // 归一化股价到0-100范围用于对比
+    // 计算评分的实际范围
+    const scoreMin = Math.min(...compositeScores);
+    const scoreMax = Math.max(...compositeScores);
+    const scoreRange = scoreMax - scoreMin || 1;
+    const scorePadding = scoreRange * 0.1;  // 上下留10%间距
+
+    // 归一化股价到评分的同一范围，让两条线紧贴对比
     const closes = analysisData.closes;
     const minPrice = Math.min(...closes);
     const maxPrice = Math.max(...closes);
     const priceRange = maxPrice - minPrice || 1;
-    const normalizedPrices = closes.map(p => ((p - minPrice) / priceRange) * 80 + 10);
+    const normalizedPrices = closes.map(p => 
+        ((p - minPrice) / priceRange) * scoreRange + (scoreMin - scorePadding)
+    );
+
+    // Y轴范围：取两条线的合并范围
+    const allValues = [...compositeScores, ...normalizedPrices];
+    const yMin = Math.floor(Math.min(...allValues) - scorePadding);
+    const yMax = Math.ceil(Math.max(...allValues) + scorePadding);
+
+    // 存储真实价格用于tooltip
+    const realCloses = analysisData.closes;
 
     chart.setOption({
         backgroundColor: 'transparent',
-        grid: { top: 60, right: 80, bottom: 40, left: 60 },
+        grid: { top: 60, right: 40, bottom: 40, left: 60 },
         tooltip: {
             trigger: 'axis',
             backgroundColor: 'rgba(17, 24, 39, 0.95)',
             borderColor: '#2a3a52',
             textStyle: { color: '#e8edf5' },
             formatter: function(params) {
-                let html = `<div style="font-weight:600;margin-bottom:4px">${params[0].axisValue}</div>`;
+                let html = `<div style="font-weight:600;margin-bottom:6px">${params[0].axisValue}</div>`;
                 params.forEach(p => {
-                    html += `<div>${p.marker} ${p.seriesName}: <b>${p.value.toFixed(2)}</b></div>`;
+                    if (p.seriesName === '真实股价') {
+                        // 显示真实价格而非归一化值
+                        const idx = p.dataIndex;
+                        const realPrice = realCloses[idx];
+                        html += `<div>${p.marker} ${p.seriesName}: <b>${realPrice.toFixed(2)}</b></div>`;
+                    } else {
+                        html += `<div>${p.marker} ${p.seriesName}: <b>${p.value.toFixed(1)}</b></div>`;
+                    }
                 });
                 return html;
             }
         },
         legend: {
-            data: ['综合评分曲线', '真实股价(归一化)'],
+            data: ['综合评分曲线', '真实股价'],
             textStyle: { color: '#8b97a8' },
             top: 10
         },
@@ -237,24 +260,13 @@ function renderCompositeChart(result) {
             },
             axisLine: { lineStyle: { color: '#2a3a52' } }
         },
-        yAxis: [
-            {
-                type: 'value',
-                name: '评分',
-                min: 0,
-                max: 100,
-                axisLabel: { color: '#8b97a8' },
-                splitLine: { lineStyle: { color: '#1a2332' } },
-                nameTextStyle: { color: '#8b97a8' }
-            },
-            {
-                type: 'value',
-                name: '股价',
-                axisLabel: { color: '#8b97a8' },
-                splitLine: { show: false },
-                nameTextStyle: { color: '#8b97a8' }
-            }
-        ],
+        yAxis: {
+            type: 'value',
+            min: yMin,
+            max: yMax,
+            axisLabel: { color: '#8b97a8' },
+            splitLine: { lineStyle: { color: '#1a2332' } }
+        },
         series: [
             {
                 name: '综合评分曲线',
@@ -272,16 +284,14 @@ function renderCompositeChart(result) {
                 z: 10
             },
             {
-                name: '真实股价(归一化)',
+                name: '真实股价',
                 type: 'line',
-                yAxisIndex: 1,
-                data: closes,
+                data: normalizedPrices,
                 smooth: true,
                 lineStyle: { width: 2, color: '#ef4444', type: 'dashed' },
                 symbol: 'none',
                 z: 5
-            },
-
+            }
         ]
     });
 
