@@ -408,3 +408,138 @@ window.addEventListener('load', () => {
         textStyle: { color: '#8b97a8' }
     });
 });
+
+
+// ============================================================
+// 搜索联想功能
+// ============================================================
+
+let searchTimer = null;
+let suggestIndex = -1;
+let lastQuery = '';
+
+function initSearchSuggest() {
+    const input = document.getElementById('stockInput');
+    const box = document.querySelector('.search-box');
+
+    let dropdown = document.getElementById('searchSuggest');
+    if (!dropdown) {
+        dropdown = document.createElement('div');
+        dropdown.id = 'searchSuggest';
+        dropdown.className = 'search-suggest';
+        box.appendChild(dropdown);
+    }
+
+    input.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        const q = this.value.trim();
+
+        if (q.length < 1) {
+            hideSuggest();
+            return;
+        }
+
+        searchTimer = setTimeout(() => doSearch(q), 300);
+    });
+
+    input.addEventListener('keydown', function (e) {
+        const dropdown = document.getElementById('searchSuggest');
+        if (!dropdown || !dropdown.classList.contains('active')) return;
+
+        const items = dropdown.querySelectorAll('.suggest-item');
+        if (!items.length) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            suggestIndex = Math.min(suggestIndex + 1, items.length - 1);
+            updateHighlight(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            suggestIndex = Math.max(suggestIndex - 1, 0);
+            updateHighlight(items);
+        } else if (e.key === 'Enter') {
+            if (suggestIndex >= 0 && items[suggestIndex]) {
+                e.preventDefault();
+                items[suggestIndex].click();
+            }
+        } else if (e.key === 'Escape') {
+            hideSuggest();
+        }
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!box.contains(e.target)) {
+            hideSuggest();
+        }
+    });
+}
+
+function updateHighlight(items) {
+    items.forEach((item, i) => {
+        item.classList.toggle('highlighted', i === suggestIndex);
+    });
+    if (items[suggestIndex]) {
+        items[suggestIndex].scrollIntoView({ block: 'nearest' });
+    }
+}
+
+function hideSuggest() {
+    const dropdown = document.getElementById('searchSuggest');
+    if (dropdown) {
+        dropdown.classList.remove('active');
+        dropdown.innerHTML = '';
+    }
+    suggestIndex = -1;
+}
+
+async function doSearch(query) {
+    if (query === lastQuery) return;
+    lastQuery = query;
+
+    const dropdown = document.getElementById('searchSuggest');
+    if (!dropdown) return;
+
+    dropdown.innerHTML = '<div class="suggest-loading">🔍 搜索中...</div>';
+    dropdown.classList.add('active');
+    suggestIndex = -1;
+
+    try {
+        const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const data = await resp.json();
+
+        if (!data.results || data.results.length === 0) {
+            dropdown.innerHTML = '<div class="suggest-empty">未找到相关股票</div>';
+            return;
+        }
+
+        dropdown.innerHTML = data.results.map((item, i) => `
+            <div class="suggest-item" onclick="selectStock('${item.code}', '${item.name}', '${item.suffix}')">
+                <div>
+                    <span class="suggest-code">${item.code}</span>
+                    <span class="suggest-name">${item.name}</span>
+                </div>
+                <span class="suggest-type">${item.type}</span>
+            </div>
+        `).join('');
+    } catch (err) {
+        dropdown.innerHTML = '<div class="suggest-empty">搜索出错，请直接输入代码</div>';
+    }
+}
+
+function selectStock(code, name, suffix) {
+    const input = document.getElementById('stockInput');
+    input.value = code + suffix;
+    hideSuggest();
+    analyze();
+}
+
+// 覆盖原有的 quickSelect
+const _originalQuickSelect = typeof quickSelect === 'function' ? quickSelect : null;
+function quickSelect(codeOrName) {
+    const input = document.getElementById('stockInput');
+    input.value = codeOrName;
+    hideSuggest();
+    analyze();
+}
+
+document.addEventListener('DOMContentLoaded', initSearchSuggest);
