@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票多维度分析系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航 -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">📊</span>
+                <h1>股票多维度分析系统</h1>
+            </div>
+            <div class="subtitle">5大模块评分 · 加权拟合 · 拟合度验证</div>
+        </header>
+
+        <!-- 搜索区 -->
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" id="stockInput" placeholder="输入股票代码（如 000001、600519、AAPL、00700.HK）" 
+                       onkeypress="if(event.key==='Enter')analyze()">
+                <button onclick="analyze()" id="searchBtn">
+                    <span class="btn-text">开始分析</span>
+                    <span class="btn-loading" style="display:none">分析中...</span>
+                </button>
+            </div>
+            <div class="quick-tags">
+                <span class="tag" onclick="quickSelect('000001')">平安银行</span>
+                <span class="tag" onclick="quickSelect('600519')">贵州茅台</span>
+                <span class="tag" onclick="quickSelect('000858')">五粮液</span>
+                <span class="tag" onclick="quickSelect('300750')">宁德时代</span>
+                <span class="tag" onclick="quickSelect('AAPL')">苹果</span>
+            </div>
+        </div>
+
+        <!-- 结果区 -->
+        <div id="resultArea" style="display:none">
+            <!-- 股票信息卡 -->
+            <div class="stock-info-card" id="stockInfo">
+                <div class="stock-name" id="stockName">--</div>
+                <div class="stock-price" id="stockPrice">--</div>
+                <div class="stock-change" id="stockChange">--</div>
+                <div class="stock-source" id="stockSource">--</div>
+            </div>
+
+            <!-- 权重配置 -->
+            <div class="weight-panel">
+                <h3>⚖️ 模块权重配置</h3>
+                <div class="weight-sliders">
+                    <div class="weight-item">
+                        <label>基本面</label>
+                        <input type="range" id="w_fundamental" min="0" max="50" value="30" oninput="updateWeight(this, 'fundamental')">
+                        <span id="wv_fundamental">30%</span>
+                    </div>
+                    <div class="weight-item">
+                        <label>技术分析</label>
+                        <input type="range" id="w_technical" min="0" max="50" value="20" oninput="updateWeight(this, 'technical')">
+                        <span id="wv_technical">20%</span>
+                    </div>
+                    <div class="weight-item">
+                        <label>市场情绪</label>
+                        <input type="range" id="w_sentiment" min="0" max="50" value="15" oninput="updateWeight(this, 'sentiment')">
+                        <span id="wv_sentiment">15%</span>
+                    </div>
+                    <div class="weight-item">
+                        <label>公司消息面</label>
+                        <input type="range" id="w_news" min="0" max="50" value="15" oninput="updateWeight(this, 'news')">
+                        <span id="wv_news">15%</span>
+                    </div>
+                    <div class="weight-item">
+                        <label>机构持仓</label>
+                        <input type="range" id="w_institutional" min="0" max="50" value="20" oninput="updateWeight(this, 'institutional')">
+                        <span id="wv_institutional">20%</span>
+                    </div>
+                </div>
+                <div class="weight-total">
+                    总权重: <span id="weightTotal">100%</span>
+                    <button class="btn-sm" onclick="resetWeights()">重置默认</button>
+                    <button class="btn-sm btn-primary" onclick="recalcFit()">重新拟合</button>
+                </div>
+            </div>
+
+            <!-- 综合分析图 -->
+            <div class="chart-section">
+                <h3>📈 综合分析：加权拟合曲线 vs 真实股价</h3>
+                <div id="compositeChart" class="chart-container"></div>
+                <div class="fit-result" id="fitResult"></div>
+            </div>
+
+            <!-- 5大模块图 -->
+            <div class="modules-grid">
+                <div class="module-card">
+                    <h4>📊 基本面评分</h4>
+                    <div id="chart_fundamental" class="chart-container-sm"></div>
+                </div>
+                <div class="module-card">
+                    <h4>📈 技术分析评分</h4>
+                    <div id="chart_technical" class="chart-container-sm"></div>
+                </div>
+                <div class="module-card">
+                    <h4>🌡️ 市场情绪评分</h4>
+                    <div id="chart_sentiment" class="chart-container-sm"></div>
+                </div>
+                <div class="module-card">
+                    <h4>📰 公司消息面评分</h4>
+                    <div id="chart_news" class="chart-container-sm"></div>
+                </div>
+                <div class="module-card">
+                    <h4>🏛️ 机构持仓评分</h4>
+                    <div id="chart_institutional" class="chart-container-sm"></div>
+                </div>
+            </div>
+
+            <!-- 拟合度详情 -->
+            <div class="fit-detail" id="fitDetail">
+                <h3>🔍 拟合度验证详情</h3>
+                <div class="fit-metrics" id="fitMetrics"></div>
+            </div>
+        </div>
+
+        <!-- 底部 -->
+        <footer class="footer">
+            <p>⚠️ 本系统仅供学习研究参考，不构成任何投资建议。股市有风险，投资需谨慎。</p>
+        </footer>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

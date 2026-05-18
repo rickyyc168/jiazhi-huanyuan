@@ -1,0 +1,450 @@
+/* ============================================================
+   股票多维度分析系统 - 样式表
+   ============================================================ */
+
+:root {
+    --bg-primary: #0a0e17;
+    --bg-secondary: #111827;
+    --bg-card: #1a2332;
+    --bg-card-hover: #1f2b3d;
+    --border: #2a3a52;
+    --text-primary: #e8edf5;
+    --text-secondary: #8b97a8;
+    --accent-blue: #3b82f6;
+    --accent-cyan: #06b6d4;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --accent-orange: #f59e0b;
+    --accent-purple: #8b5cf6;
+    --gradient-blue: linear-gradient(135deg, #3b82f6, #06b6d4);
+    --gradient-green: linear-gradient(135deg, #10b981, #34d399);
+    --gradient-red: linear-gradient(135deg, #ef4444, #f97316);
+    --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    --radius: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* Header */
+.header {
+    text-align: center;
+    padding: 40px 0 20px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    font-size: 36px;
+}
+
+.logo h1 {
+    font-size: 32px;
+    font-weight: 700;
+    background: var(--gradient-blue);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 8px;
+    letter-spacing: 2px;
+}
+
+/* Search */
+.search-section {
+    max-width: 700px;
+    margin: 30px auto;
+}
+
+.search-box {
+    display: flex;
+    gap: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px;
+}
+
+.search-box input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 16px;
+    padding: 12px 16px;
+    outline: none;
+}
+
+.search-box input::placeholder {
+    color: var(--text-secondary);
+}
+
+.search-box button {
+    background: var(--gradient-blue);
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.search-box button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.search-box button:active {
+    transform: translateY(0);
+}
+
+.quick-tags {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.tag {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tag:hover {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+/* Stock Info Card */
+.stock-info-card {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 28px;
+    margin-bottom: 24px;
+}
+
+.stock-name {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.stock-price {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.stock-change {
+    font-size: 18px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 6px;
+}
+
+.stock-change.up {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent-green);
+}
+
+.stock-change.down {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--accent-red);
+}
+
+.stock-source {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-left: auto;
+}
+
+/* Weight Panel */
+.weight-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.weight-panel h3 {
+    font-size: 16px;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+}
+
+.weight-sliders {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.weight-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.weight-item label {
+    min-width: 80px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.weight-item input[type="range"] {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    background: var(--border);
+    border-radius: 3px;
+    outline: none;
+}
+
+.weight-item input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    cursor: pointer;
+    border: 2px solid var(--bg-primary);
+}
+
+.weight-item span {
+    min-width: 40px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-cyan);
+    text-align: right;
+}
+
+.weight-total {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.btn-sm {
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-sm:hover {
+    border-color: var(--accent-blue);
+}
+
+.btn-primary {
+    background: var(--gradient-blue);
+    border: none;
+    color: white;
+}
+
+/* Chart Section */
+.chart-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.chart-section h3 {
+    font-size: 16px;
+    margin-bottom: 16px;
+}
+
+.chart-container {
+    width: 100%;
+    height: 400px;
+}
+
+.chart-container-sm {
+    width: 100%;
+    height: 260px;
+}
+
+/* Fit Result */
+.fit-result {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.fit-result.explainable {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--accent-green);
+}
+
+.fit-result.blackbox {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: var(--accent-orange);
+}
+
+/* Modules Grid */
+.modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.module-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: all 0.3s;
+}
+
+.module-card:hover {
+    border-color: var(--accent-blue);
+    background: var(--bg-card-hover);
+}
+
+.module-card h4 {
+    font-size: 15px;
+    margin-bottom: 12px;
+    color: var(--text-secondary);
+}
+
+/* Fit Detail */
+.fit-detail {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 40px;
+}
+
+.fit-detail h3 {
+    font-size: 16px;
+    margin-bottom: 16px;
+}
+
+.fit-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.metric-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+}
+
+.metric-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.metric-value {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.metric-value.good {
+    color: var(--accent-green);
+}
+
+.metric-value.warn {
+    color: var(--accent-orange);
+}
+
+.metric-value.bad {
+    color: var(--accent-red);
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 24px 0 40px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .logo h1 {
+        font-size: 22px;
+    }
+    
+    .stock-info-card {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .modules-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .weight-sliders {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-box {
+        flex-direction: column;
+    }
+    
+    .search-box button {
+        width: 100%;
+    }
+}
